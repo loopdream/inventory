@@ -168,7 +168,7 @@ export default function Home() {
           onClick={() => setFilter('all')}
           disabled={filterBy === 'all'}
         >
-          All
+          All ({inventoryItems.length})
         </button>
         <button
           type="button"
@@ -180,7 +180,7 @@ export default function Home() {
           onClick={() => setFilter('sold')}
           disabled={filterBy === 'sold'}
         >
-          Sold
+          Sold ({getNumItemsSold()})
         </button>
         <button
           type="button"
@@ -192,7 +192,7 @@ export default function Home() {
           onClick={() => setFilter('notSold')}
           disabled={filterBy === 'notSold'}
         >
-          Not sold
+          Not sold ({inventoryItems.length - getNumItemsSold()})
         </button>
       </div>
       <table className="min-w-full divide-y divide-gray-300">
@@ -214,7 +214,7 @@ export default function Home() {
               scope="col"
               className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-2/5"
             >
-              Sold Price
+              Sale Price
             </th>
           </tr>
         </thead>
@@ -229,7 +229,7 @@ export default function Home() {
           {list.length > 0 &&
             list.map((item, index) => (
               <tr key={item.description.split('').join('-')}>
-                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500  w-2/5">
+                <td className="whitespace-wrap px-3 py-4 text-sm text-gray-500  w-2/5">
                   {item.description}
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 w-1/5 font-semibold">
