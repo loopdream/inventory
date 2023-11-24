@@ -98,7 +98,7 @@ const inventory = [
     soldForPrice: null,
   },
   {
-    description: 'YMC Muti-strip tshirt',
+    description: 'YMC Muti-stripe tshirt',
     price: 8,
     soldForPrice: null,
   },
