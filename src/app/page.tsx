@@ -1,16 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import inventory, { InventoryItem } from './inventory';
 
 export default function Home() {
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(
-    JSON.parse(localStorage.getItem('inventory') || JSON.stringify(inventory))
-  );
+  const [inventoryItems, setInventoryItems] =
+    useState<InventoryItem[]>(inventory);
+
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filterBy, setFilter] = useState<'all' | 'sold' | 'notSold'>('all');
   const [editItem, setEditItem] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    const savedInventory = JSON.parse(
+      localStorage.getItem('inventory') || JSON.stringify(inventory)
+    );
+    setInventoryItems(savedInventory);
+  }, []);
 
   const onEditHandler = (index?: number) => {
     setEditItem(index ?? undefined);
