@@ -147,6 +147,11 @@ const inventory = [
     price: 8,
     soldForPrice: null,
   },
+  {
+    description: 'Tool box',
+    price: 15,
+    soldForPrice: null,
+  },
 ];
 
 export default inventory.sort(alphabetical);
