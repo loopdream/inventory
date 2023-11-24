@@ -160,8 +160,10 @@ export default function Home() {
       <div className="isolate inline-flex rounded-md min-w-full p-3">
         <button
           type="button"
-          className={`relative inline-flex items-center rounded-l-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:z-10 w-1/3 ${
-            filterBy === 'all' && activeBtnStyle
+          className={`relative inline-flex items-center rounded-l-md  px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:z-10 w-1/3 ${
+            filterBy === 'all'
+              ? `bg-indigo-600 text-white`
+              : 'bg-white text-gray-900'
           }`}
           onClick={() => setFilter('all')}
           disabled={filterBy === 'all'}
@@ -170,8 +172,10 @@ export default function Home() {
         </button>
         <button
           type="button"
-          className={`relative -ml-px inline-flex items-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300  focus:z-10 w-1/3 ${
-            filterBy === 'sold' && activeBtnStyle
+          className={`relative -ml-px inline-flex items-center  px-3 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300  focus:z-10 w-1/3 ${
+            filterBy === 'sold'
+              ? `bg-indigo-600 text-white`
+              : 'bg-white text-gray-900'
           }`}
           onClick={() => setFilter('sold')}
           disabled={filterBy === 'sold'}
@@ -180,8 +184,10 @@ export default function Home() {
         </button>
         <button
           type="button"
-          className={`relative -ml-px inline-flex items-center rounded-r-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:z-10  w-1/3 ${
-            filterBy === 'notSold' && activeBtnStyle
+          className={`relative -ml-px inline-flex items-center rounded-r-md px-3 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 focus:z-10  w-1/3  ${
+            filterBy === 'notSold'
+              ? `bg-indigo-600 text-white`
+              : 'bg-white text-gray-900'
           }`}
           onClick={() => setFilter('notSold')}
           disabled={filterBy === 'notSold'}
