@@ -122,7 +122,7 @@ export default function Home() {
   );
 
   return (
-    <main className="flex flex-col items-center justify-between">
+    <main className="flex flex-col items-center justify-between bg-white">
       <div className="min-w-full p-3  divide-y divide-gray-300">
         <h1 className="font-bold mb-2">Inventory</h1>
         <p className="pt-3">
