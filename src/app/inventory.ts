@@ -152,6 +152,11 @@ const inventory = [
     price: 15,
     soldForPrice: null,
   },
+  {
+    description: 'Hario coffee dripper',
+    price: 4,
+    soldForPrice: null,
+  },
 ];
 
 export default inventory.sort(alphabetical);
