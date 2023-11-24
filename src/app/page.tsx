@@ -1,113 +1,291 @@
-import Image from 'next/image'
+'use client';
+
+import { useState } from 'react';
+
+import inventory, { InventoryItem } from './inventory';
 
 export default function Home() {
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(
+    JSON.parse(localStorage.getItem('inventory') || JSON.stringify(inventory))
+  );
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [filterBy, setFilter] = useState<'all' | 'sold' | 'notSold'>('all');
+  const [editItem, setEditItem] = useState<number | undefined>(undefined);
+
+  const onEditHandler = (index?: number) => {
+    setEditItem(index ?? undefined);
+  };
+
+  const onRefundHandler = (index: number) => {
+    const updatedInventoryItems = inventoryItems.map((i: InventoryItem) => {
+      if (i.description === inventoryItems[index].description) {
+        return { ...i, soldForPrice: null };
+      }
+      return i;
+    });
+
+    setInventoryItems(updatedInventoryItems);
+    localStorage.setItem('inventory', JSON.stringify(updatedInventoryItems));
+  };
+
+  const onFormSubmit = (e: any, item: InventoryItem) => {
+    e.preventDefault();
+    const soldForPrice = e.target[0].value;
+    console.log(soldForPrice);
+    const updatedInventoryItems = inventoryItems.map((i: InventoryItem) => {
+      if (i.description === item.description) {
+        return { ...i, soldForPrice };
+      }
+      return i;
+    });
+
+    setInventoryItems(updatedInventoryItems);
+    setEditItem(undefined);
+    localStorage.setItem('inventory', JSON.stringify(updatedInventoryItems));
+  };
+
+  const getNumItemsSold = () => {
+    const soldItems = inventoryItems.filter(
+      (item: InventoryItem) => item.soldForPrice && item.soldForPrice > 0
+    );
+    return soldItems.length;
+  };
+
+  const getPojectedEarnings = () => {
+    return inventoryItems.reduce((acc, item) => acc + item.price, 0);
+  };
+
+  const getActualEarnings = () => {
+    const soldItems = inventoryItems.filter(
+      (item: InventoryItem) => item.soldForPrice && item.soldForPrice > 0
+    );
+    return soldItems.reduce((acc, { soldForPrice }) => {
+      if (soldForPrice === null) return acc;
+      const soldPrice =
+        typeof soldForPrice === 'string'
+          ? parseInt(soldForPrice)
+          : soldForPrice;
+      return acc + soldPrice;
+    }, 0);
+  };
+
+  const clearLocalStorage = () => {
+    if (
+      confirm(
+        'Are you sure you want to reset the inventory?! This will clear all sold prices and reset the inventory to the default items.'
+      )
+    ) {
+      if (confirm('ARE YOU SURE YOU ARE SURE?!!')) {
+        localStorage.removeItem('inventory');
+        setInventoryItems(inventory);
+      }
+    }
+  };
+
+  const getProfit = () => {
+    const soldItems = inventoryItems.filter(
+      (item: InventoryItem) => item.soldForPrice && item.soldForPrice > 0
+    );
+    return soldItems.reduce((acc, { soldForPrice, price }) => {
+      if (soldForPrice === null) return acc;
+      const soldPrice =
+        typeof soldForPrice === 'string'
+          ? parseInt(soldForPrice)
+          : soldForPrice;
+      return acc + (soldPrice - price);
+    }, 0);
+  };
+
+  const activeBtnStyle = 'bg-indigo-700 text-white';
+
+  const sortedItems =
+    filterBy === 'sold'
+      ? inventoryItems.filter(
+          (item: InventoryItem) => item.soldForPrice && item.soldForPrice > 0
+        )
+      : filterBy === 'notSold'
+        ? inventoryItems.filter(
+            (item: InventoryItem) =>
+              !item.soldForPrice || item.soldForPrice === 0
+          )
+        : inventoryItems;
+
+  const list = sortedItems.filter((item: InventoryItem) =>
+    item.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
+    <main className="flex flex-col items-center justify-between">
+      <div className="min-w-full p-3  divide-y divide-gray-300">
+        <h1 className="font-bold mb-2">Inventory</h1>
+        <p className="pt-3">
+          <span className="font-semibold">Total items:</span> {inventory.length}
+          <br />
+          <span className="font-semibold">Items sold:</span> {getNumItemsSold()}
+          <br />
+          <span className="font-semibold">Projected earnings:</span> £
+          {getPojectedEarnings()}
+          <br />
+          <span className="font-semibold">Actual earnings:</span> £
+          {getActualEarnings()}
+          <br />
+          <span className="font-semibold">Profit:</span> £{getProfit()}
         </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
       </div>
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+      <div className="py-2 px-3 flex min-w-full">
+        <input
+          type="text"
+          className=" inline-block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 w-200 mb-1"
+          placeholder="Search for an item"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
+        <button
+          className=" px-2 py-1 text-sm font-semibold text-indigo-600 ml-3"
+          type="button"
+          onClick={() => setSearchTerm('')}
+        >
+          Clear
+        </button>
       </div>
 
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
+      <div className="isolate inline-flex rounded-md min-w-full p-3">
+        <button
+          type="button"
+          className={`relative inline-flex items-center rounded-l-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:z-10 w-1/3 ${
+            filterBy === 'all' && activeBtnStyle
+          }`}
+          onClick={() => setFilter('all')}
+          disabled={filterBy === 'all'}
         >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
+          All
+        </button>
+        <button
+          type="button"
+          className={`relative -ml-px inline-flex items-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300  focus:z-10 w-1/3 ${
+            filterBy === 'sold' && activeBtnStyle
+          }`}
+          onClick={() => setFilter('sold')}
+          disabled={filterBy === 'sold'}
         >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
+          Sold
+        </button>
+        <button
+          type="button"
+          className={`relative -ml-px inline-flex items-center rounded-r-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:z-10  w-1/3 ${
+            filterBy === 'notSold' && activeBtnStyle
+          }`}
+          onClick={() => setFilter('notSold')}
+          disabled={filterBy === 'notSold'}
         >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+          Not sold
+        </button>
       </div>
+      <table className="min-w-full divide-y divide-gray-300">
+        <thead>
+          <tr>
+            <th
+              scope="col"
+              className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-2/5"
+            >
+              Description
+            </th>
+            <th
+              scope="col"
+              className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900  w-1/5"
+            >
+              Price
+            </th>
+            <th
+              scope="col"
+              className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-2/5"
+            >
+              Sold Price
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          {list.length === 0 && (
+            <tr>
+              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500  w-2/5">
+                No items found
+              </td>
+            </tr>
+          )}
+          {list.length > 0 &&
+            list.map((item, index) => (
+              <tr key={item.description.split('').join('-')}>
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500  w-2/5">
+                  {item.description}
+                </td>
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 w-1/5 font-semibold">
+                  £{item.price}
+                </td>
+
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 w-2/5 ">
+                  {item.soldForPrice && editItem !== index ? (
+                    <>
+                      <span className="font-semibold">
+                        £{item.soldForPrice}
+                      </span>{' '}
+                      <button
+                        className="rounded bg-indigo-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ml-3"
+                        type="button"
+                        onClick={() => onEditHandler(index)}
+                      >
+                        Edit
+                      </button>{' '}
+                      <button
+                        className="rounded bg-indigo-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ml-1"
+                        type="button"
+                        onClick={() => onRefundHandler(index)}
+                      >
+                        Refund
+                      </button>{' '}
+                    </>
+                  ) : (
+                    <form onSubmit={(e) => onFormSubmit(e, item)}>
+                      <input
+                        type="number"
+                        className=" inline-block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 w-200 mb-1"
+                        placeholder={
+                          item.soldForPrice !== null
+                            ? `£${item.soldForPrice}`
+                            : '£'
+                        }
+                      />
+                      <br />
+                      <button
+                        className="rounded bg-indigo-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 mr-1"
+                        type="submit"
+                      >
+                        Submit
+                      </button>
+                      {item.soldForPrice && (
+                        <button
+                          className="rounded bg-indigo-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 mr-1"
+                          type="button"
+                          onClick={() => onEditHandler()}
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </form>
+                  )}
+                </td>
+              </tr>
+            ))}
+        </tbody>
+      </table>
+
+      <button
+        className="rounded bg-indigo-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 mt-10"
+        type="button"
+        onClick={() => clearLocalStorage()}
+      >
+        Reset Inventory
+      </button>
     </main>
-  )
+  );
 }
